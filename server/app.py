@@ -1,34 +1,32 @@
 #!/usr/bin/env python3
 
-from flask import Flask, make_response
-from flask_migrate import Migrate
-
-from models import db, Zookeeper, Enclosure, Animal
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-migrate = Migrate(app, db)
+db = SQLAlchemy(app)
 
-db.init_app(app)
+from models import Task
 
 @app.route('/')
-def home():
-    return '<h1>Zoo app</h1>'
+def index():
+    tasks = Task.query.all()
+    return render_template('index.html', tasks=tasks)
 
-@app.route('/animal/<int:id>')
-def animal_by_id(id):
-    return ''
-
-@app.route('/zookeeper/<int:id>')
-def zookeeper_by_id(id):
-    return ''
-
-@app.route('/enclosure/<int:id>')
-def enclosure_by_id(id):
-    return ''
-
+@app.route('/add', methods=['POST'])
+def add_task():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        new_task = Task(title=title, description=description)
+        db.session.add(new_task)
+        db.session.commit()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True, port=5555)
