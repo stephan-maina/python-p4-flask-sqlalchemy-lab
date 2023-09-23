@@ -1,50 +1,22 @@
 #!/usr/bin/env python3
 
-from random import choice as rc
+from app import db
+from models import Task
+from app import app  # Import the Flask app instance
 
-from faker import Faker
+# Create and add some initial tasks to the database
+if __name__ == '__main__':
+    with app.app_context():  # Create an app context to work with the app and database
+        db.create_all()
 
-from app import app
-from models import db, Zookeeper, Animal, Enclosure
+        task1 = Task(title='Buy groceries', description='Milk, eggs, bread')
+        task2 = Task(title='Finish project', description='Complete project by Friday')
+        task3 = Task(title='Go for a run', description='Run 5 kilometers')
 
-fake = Faker()
+        db.session.add(task1)
+        db.session.add(task2)
+        db.session.add(task3)
 
-with app.app_context():
+        db.session.commit()
 
-    Animal.query.delete()
-    Zookeeper.query.delete()
-    Enclosure.query.delete()
-
-    zookeepers = []
-    for n in range(25):
-        zk = Zookeeper(name=fake.name(), birthday=fake.date_between(
-            start_date='-70y', end_date='-18y'))
-        zookeepers.append(zk)
-
-    db.session.add_all(zookeepers)
-
-    enclosures = []
-    environments = ['Desert', 'Pond', 'Ocean', 'Field', 'Trees', 'Cave', 'Cage']
-
-    for n in range(25):
-        e = Enclosure(environment=rc(environments), open_to_visitors=rc([True, False]))
-        enclosures.append(e)
-
-    db.session.add_all(enclosures)
-
-    animals = []
-    species = ['Lion', 'Tiger', 'Bear', 'Hippo', 'Rhino', 'Elephant', 'Ostrich',
-        'Snake', 'Monkey']
-
-    for n in range(200):
-        name = fake.first_name()
-        while name in [a.name for a in animals]:
-            name=fake.first_name()
-        a = Animal(name=name, species=rc(species))
-        a.zookeeper = rc(zookeepers)
-        a.enclosure = rc(enclosures)
-        animals.append(a)
-
-    db.session.add_all(animals)
-    db.session.commit()
 
