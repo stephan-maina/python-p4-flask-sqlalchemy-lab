@@ -1,23 +1,16 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData
 
-metadata = MetaData(naming_convention={
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-})
+db = SQLAlchemy()
 
-db = SQLAlchemy(metadata=metadata)
-
-class Zookeeper(db.Model):
-    __tablename__ = 'zookeepers'
-
+class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.String(256))
+    done = db.Column(db.Boolean, default=False)
 
-class Enclosure(db.Model):
-    __tablename__ = 'enclosures'
+    def __init__(self, title, description):
+        self.title = title
+        self.description = description
 
-    id = db.Column(db.Integer, primary_key=True)
-
-class Animal(db.Model):
-    __tablename__ = 'animals'
-
-    id = db.Column(db.Integer, primary_key=True)
+    def toggle_done(self):
+        self.done = not self.done
